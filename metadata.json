@@ -1,0 +1,5 @@
+{
+  "name": "AI Image Converter",
+  "description": "An AI-powered tool that transforms your images based on text prompts. Upload a photo, describe the changes you want, and let Gemini's magic create a new version.",
+  "requestFramePermissions": []
+}
