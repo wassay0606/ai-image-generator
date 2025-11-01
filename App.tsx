@@ -21,6 +21,17 @@ const App: React.FC = () => {
     setError(null);
   };
 
+  const handleImageClear = () => {
+    setImageFile(null);
+    setOriginalImageUrl(null);
+    setGeneratedImageUrl(null);
+    setError(null);
+    // Revoke the object URL to free up memory
+    if (originalImageUrl) {
+      URL.revokeObjectURL(originalImageUrl);
+    }
+  };
+
   const handleGenerateClick = useCallback(async () => {
     if (!imageFile || !prompt) {
       setError('Please upload an image and provide a prompt.');
@@ -54,7 +65,7 @@ const App: React.FC = () => {
       if (result.imageUrl) {
         setGeneratedImageUrl(result.imageUrl);
       } else {
-        throw new Error('No image URL was returned from the server.');
+        throw new Error(result.error || 'No image URL was returned from the server.');
       }
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
@@ -72,7 +83,7 @@ const App: React.FC = () => {
         <main className="mt-8 space-y-8">
           <div className="bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700">
             <h2 className="text-xl font-semibold mb-4 text-indigo-400">1. Upload your Image</h2>
-            <ImageUploader onImageUpload={handleImageUpload} />
+            <ImageUploader onImageUpload={handleImageUpload} onImageClear={handleImageClear} />
           </div>
 
           <div className="bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700">
@@ -82,6 +93,7 @@ const App: React.FC = () => {
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="e.g., 'Turn this into a watercolor painting', 'Add a futuristic city in the background', 'Make it look like a cartoon'"
               className="w-full h-24 p-4 bg-gray-900 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 resize-none"
+              aria-label="Transformation prompt"
             />
           </div>
 
@@ -106,18 +118,16 @@ const App: React.FC = () => {
           </div>
 
           {error && (
-            <div className="bg-red-900/50 border border-red-700 text-red-300 p-4 rounded-lg text-center">
+            <div role="alert" className="bg-red-900/50 border border-red-700 text-red-300 p-4 rounded-lg text-center">
               {error}
             </div>
           )}
 
-          {(originalImageUrl || generatedImageUrl) && (
-            <ResultDisplay
-              originalImage={originalImageUrl}
-              generatedImage={generatedImageUrl}
-              isLoading={isLoading}
-            />
-          )}
+          <ResultDisplay
+            originalImage={originalImageUrl}
+            generatedImage={generatedImageUrl}
+            isLoading={isLoading}
+          />
         </main>
       </div>
     </div>

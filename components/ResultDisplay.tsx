@@ -32,8 +32,8 @@ const ImageCard: React.FC<{ title: string; imageUrl: string | null; isLoading?: 
             )}
           </>
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-500">
-            {isGenerated ? "Your generated image will appear here" : "Original image"}
+          <div className="flex items-center justify-center h-full text-gray-500 px-4 text-center">
+            {isGenerated ? "Your generated image will appear here" : "Your uploaded image will appear here"}
           </div>
         )}
       </div>
@@ -43,12 +43,25 @@ const ImageCard: React.FC<{ title: string; imageUrl: string | null; isLoading?: 
 
 
 const ResultDisplay: React.FC<ResultDisplayProps> = ({ originalImage, generatedImage, isLoading }) => {
+  if (!originalImage && !generatedImage && !isLoading) {
+    return null;
+  }
+
   return (
-    <div className="bg-gray-800 p-4 sm:p-6 rounded-2xl shadow-lg border border-gray-700">
+    <div className="bg-gray-800 p-4 sm:p-6 rounded-2xl shadow-lg border border-gray-700 transition-opacity duration-500 ease-in-out animate-fadeIn">
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.5s ease-in-out;
+        }
+      `}</style>
       <h2 className="text-xl font-semibold mb-4 text-center text-indigo-400">3. Result</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         <ImageCard title="Original" imageUrl={originalImage} />
-        <ImageCard title="Generated" imageUrl={generatedImage} isLoading={isLoading} isGenerated={!isLoading && !!generatedImage} />
+        <ImageCard title="Generated" imageUrl={generatedImage} isLoading={isLoading} isGenerated={true} />
       </div>
     </div>
   );

@@ -1,11 +1,12 @@
-import React, { useState, useCallback } from 'react';
-import { UploadIcon } from './icons.tsx';
+import React, { useState, useCallback, useEffect } from 'react';
+import { UploadIcon, RemoveIcon } from './icons.tsx';
 
 interface ImageUploaderProps {
   onImageUpload: (file: File) => void;
+  onImageClear: () => void;
 }
 
-const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) => {
+const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, onImageClear }) => {
   const [preview, setPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
@@ -19,6 +20,16 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) => {
         alert('Please upload a valid image file.');
       }
     }
+  };
+
+  const handleClear = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (preview) {
+      URL.revokeObjectURL(preview);
+    }
+    setPreview(null);
+    onImageClear();
   };
 
   const onDragOver = useCallback((e: React.DragEvent<HTMLLabelElement>) => {
@@ -40,9 +51,18 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) => {
   const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleFileChange(e.target.files);
   };
+  
+  // Clean up object URL on component unmount
+  useEffect(() => {
+    return () => {
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
 
   return (
-    <div>
+    <div className="relative">
       <label
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
@@ -63,6 +83,15 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload }) => {
         )}
         <input type="file" className="hidden" accept="image/*" onChange={onFileSelect} />
       </label>
+      {preview && (
+        <button
+          onClick={handleClear}
+          className="absolute top-2 right-2 bg-gray-900/70 text-white p-2 rounded-full hover:bg-gray-800 transition-colors duration-200"
+          aria-label="Remove image"
+        >
+          <RemoveIcon className="w-5 h-5" />
+        </button>
+      )}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { GoogleGenAI, Modality } from '@google/genai';
+import { GoogleGenAI, Modality, FinishReason } from '@google/genai';
 import type { Handler } from '@netlify/functions';
 
 // A part for a multimodal request to the Gemini API.
@@ -48,24 +48,33 @@ export const handler: Handler = async (event) => {
         responseModalities: [Modality.IMAGE],
       },
     });
+    
+    const candidate = response.candidates?.[0];
 
-    const firstPart = response.candidates?.[0]?.content?.parts?.[0];
-    if (firstPart && firstPart.inlineData) {
-      const base64Image = firstPart.inlineData.data;
-      const mimeType = firstPart.inlineData.mimeType;
-      const imageUrl = `data:${mimeType};base64,${base64Image}`;
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ imageUrl }),
-      };
-    } else {
-      const refusalReason = response.candidates?.[0]?.finishReason;
-      console.error('Image generation failed.', { refusalReason });
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: 'No image was generated. The model may have refused the request due to safety policies.' }),
-      };
+    if (candidate && candidate.finishReason === FinishReason.OK && candidate.content.parts) {
+      for (const part of candidate.content.parts) {
+        if (part.inlineData) {
+          const base64Image = part.inlineData.data;
+          const mimeType = part.inlineData.mimeType;
+          const imageUrl = `data:${mimeType};base64,${base64Image}`;
+          return {
+            statusCode: 200,
+            body: JSON.stringify({ imageUrl }),
+          };
+        }
+      }
     }
+    
+    // If we get here, no image was generated.
+    const refusalReason = candidate?.finishReason ?? 'UNKNOWN';
+    const reasonText = `The model refused the request. Reason: ${refusalReason}.`;
+    console.error('Image generation failed.', { refusalReason, safetyRatings: candidate?.safetyRatings });
+    
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: reasonText }),
+    };
+
   } catch (e) {
     const error = e as Error;
     console.error(error);
