@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import Header from './components/Header';
-import ImageUploader from './components/ImageUploader';
-import ResultDisplay from './components/ResultDisplay';
-import Spinner from './components/Spinner';
-import { WandIcon } from './components/icons';
-import { fileToGenerativePart } from './utils/fileUtils';
+import Header from './components/Header.tsx';
+import ImageUploader from './components/ImageUploader.tsx';
+import ResultDisplay from './components/ResultDisplay.tsx';
+import Spinner from './components/Spinner.tsx';
+import { WandIcon } from './components/icons.tsx';
+import { fileToGenerativePart } from './utils/fileUtils.ts';
 
 const App: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);

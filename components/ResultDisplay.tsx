@@ -1,7 +1,6 @@
-
 import React from 'react';
-import Spinner from './Spinner';
-import { DownloadIcon } from './icons';
+import Spinner from './Spinner.tsx';
+import { DownloadIcon } from './icons.tsx';
 
 interface ResultDisplayProps {
   originalImage: string | null;
