@@ -1,6 +1,4 @@
-
 import React, { useState, useCallback } from 'react';
-import { GoogleGenAI, Modality } from '@google/genai';
 import Header from './components/Header';
 import ImageUploader from './components/ImageUploader';
 import ResultDisplay from './components/ResultDisplay';
@@ -34,29 +32,29 @@ const App: React.FC = () => {
     setGeneratedImageUrl(null);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
       const imagePart = await fileToGenerativePart(imageFile);
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: {
-          parts: [
-            imagePart,
-            { text: prompt },
-          ],
+      const response = await fetch('/.netlify/functions/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        config: {
-          responseModalities: [Modality.IMAGE],
-        },
+        body: JSON.stringify({
+          imagePart,
+          prompt,
+        }),
       });
+      
+      const result = await response.json();
 
-      const firstPart = response.candidates?.[0]?.content?.parts?.[0];
-      if (firstPart && firstPart.inlineData) {
-        const base64Image = firstPart.inlineData.data;
-        const mimeType = firstPart.inlineData.mimeType;
-        setGeneratedImageUrl(`data:${mimeType};base64,${base64Image}`);
+      if (!response.ok) {
+        throw new Error(result.error || `Request failed with status ${response.status}`);
+      }
+      
+      if (result.imageUrl) {
+        setGeneratedImageUrl(result.imageUrl);
       } else {
-        throw new Error('No image was generated. The model may have refused the request.');
+        throw new Error('No image URL was returned from the server.');
       }
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
