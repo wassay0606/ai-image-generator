@@ -1,0 +1,9 @@
+[build]
+  command = "npm run build"     # React app ko build karne ka command
+  publish = "build"             # Build hone ke baad yahan se site serve hoti hai
+  base = "/"                    # (optional) agar project root folder me hai
+
+[[redirects]]
+  from = "/*"                   # Sare routes ko index.html pe redirect karega
+  to = "/index.html"
+  status = 200
